@@ -13,83 +13,229 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/ScrollTrigger.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.7.8/lottie.min.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script defer src="{{ url_for('static', filename='script.js') }}"></script>
+    <style>
+        #particles-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        .food-particle {
+            position: fixed;
+            animation: fall linear forwards;
+            opacity: 0.6;
+            font-size: 24px;
+        }
+        @keyframes fall {
+            from {
+                transform: translateY(-20vh);
+            }
+            to {
+                transform: translateY(100vh);
+            }
+        }
+        
+        /* Enhanced Recipe Card Styles */
+        .recipe-card {
+            @apply bg-white dark:bg-gray-700 rounded-xl shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-105;
+        }
+        
+        .recipe-card-image {
+            @apply w-full h-48 object-cover transition-transform duration-300;
+        }
+        
+        .recipe-card:hover .recipe-card-image {
+            transform: scale(1.05);
+        }
+        
+        .recipe-card-content {
+            @apply p-6;
+        }
+        
+        .recipe-title {
+            text-xl font-bold text-gray-800 dark:text-white mb-2 line-clamp-2;
+        }
+        
+        .recipe-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem; /* Tailwind's gap-2 equivalent */
+            margin-bottom: 1rem; /* Tailwind's mb-4 equivalent */
+        }    gap: 0.5rem; /* Tailwind's gap-2 equivalent */
+        ttom: 1rem; /* Tailwind's mb-4 equivalent */
+        .recipe-tag {
+            @apply px-3 py-1 rounded-full text-sm bg-orange-100 text-orange-600 dark:bg-orange-900 dark:text-orange-200;
+        }.recipe-tag {
+         py-1 rounded-full text-sm bg-orange-100 text-orange-600 dark:bg-orange-900 dark:text-orange-200;
+        .recipe-stats {
+            @apply flex items-center justify-between text-sm text-gray-600 dark:text-gray-300;
+        }.recipe-stats {
+        x items-center justify-between text-sm text-gray-600 dark:text-gray-300;
+        .recipe-stat {
+            @apply flex items-center gap-1;
+        }.recipe-stat {
+        ems-center gap-1;
+        .view-recipe-btn {
+            @apply mt-4 w-full py-2 px-4 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg 
+                   transform transition-all duration-300 hover:from-orange-500 hover:to-orange-600 
+                   hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-orange-300;   @apply mt-4 w-full py-2 px-4 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg 
+        }                   transform transition-all duration-300 hover:from-orange-500 hover:to-orange-600 
+cus:outline-none focus:ring-2 focus:ring-orange-300;
+        @keyframes recipeCardAppear {
+            from {
+                opacity: 0;
+                transform: translateY(20px);rom {
+            }opacity: 0;
+            to {translateY(20px);
+                opacity: 1;
+                transform: translateY(0);o {
+            }       opacity: 1;
+        }                transform: translateY(0);
+
+        .recipe-card {
+            animation: recipeCardAppear 0.5s ease-out forwards;
+        }ipe-card {
+    </style>     animation: recipeCardAppear 0.5s ease-out forwards;
 </head>
 <body class="bg-gradient-to-br from-gray-50 to-gray-100 dark:bg-gradient-to-br dark:from-gray-800 dark:to-gray-900 min-h-screen">
     <!-- Header with animated background -->
-    <div class="header-container relative overflow-hidden">
+    <div id="particles-container"></div>k:bg-gradient-to-br dark:from-gray-800 dark:to-gray-900 min-h-screen">
+    <div class="header-container relative overflow-hidden">>
         <div id="particle-container"></div>
-        <div class="container mx-auto px-4 py-16 relative z-10">
+        <div class="container mx-auto px-4 py-16 relative z-10">verflow-hidden">
             <div class="text-center mb-10">
-                <div class="logo-container flex justify-center items-center space-x-3 mb-3">
+                <div class="logo-container flex justify-center items-center space-x-3 mb-3">>
                     <span class="text-5xl logo-icon">🍽️</span>
-                    <h1 class="text-5xl font-bold text-gray-800 dark:text-white inline-block app-title">Gourmet AI</h1>
+                    <h1 class="text-5xl font-bold text-gray-800 dark:text-white inline-block app-title">Gourmet AI</h1>lass="logo-container flex justify-center items-center space-x-3 mb-3">
                 </div>
-                <p class="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mt-4 tagline">Transform your ingredients into culinary masterpieces with AI-powered recipe suggestions</p>
-            </div>
-        </div>
-    </div>
+                <p class="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mt-4 tagline">Transform your ingredients into culinary masterpieces with AI-powered recipe suggestions</p>  <h1 class="text-5xl font-bold text-gray-800 dark:text-white inline-block app-title">Gourmet AI</h1>
+            </div>  </div>
+        </div>      <p class="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mt-4 tagline">Transform your ingredients into culinary masterpieces with AI-powered recipe suggestions</p>
+    </div>            </div>
 
     <!-- Main content -->
     <div class="container mx-auto px-4 pb-12 relative">
         <!-- Search box -->
-        <div class="max-w-3xl mx-auto bg-white dark:bg-gray-700 rounded-2xl shadow-xl overflow-hidden mb-10 search-container transform -translate-y-6">
+        <div class="max-w-3xl mx-auto bg-white dark:bg-gray-700 rounded-2xl shadow-xl overflow-hidden mb-10 search-container transform -translate-y-6"> pb-12 relative">
             <div class="p-8 relative">
-                <div class="relative mb-8">
+                <div class="relative mb-8">dden mb-10 search-container transform -translate-y-6">
                     <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                        <span class="text-2xl ingredient-icon">🥕</span>
-                    </div>
+                        <span class="text-2xl ingredient-icon">🥕</span>="relative mb-8">
+                    </div>4 flex items-center pointer-events-none">
                     <input type="text" id="ingredients" 
                            placeholder="Enter ingredients (e.g., chicken, spinach, garlic)" 
-                           class="ingredients-input w-full py-4 pl-14 pr-4 rounded-xl text-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-300 dark:bg-gray-600 dark:text-white">
-                </div>
-                
-                <div id="ingredient-tags" class="flex flex-wrap gap-2 mb-6"></div>
+                           class="ingredients-input w-full py-4 pl-14 pr-4 rounded-xl text-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-300 dark:bg-gray-600 dark:text-white">nput type="text" id="ingredients" 
+                </div>           placeholder="Enter ingredients (e.g., chicken, spinach, garlic)" 
+                -xl text-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-300 dark:bg-gray-600 dark:text-white">
+                <div id="ingredient-tags" class="flex flex-wrap gap-2 mb-6"></div></div>
                 
                 <button id="get-recipes-btn" onclick="getRecipes()" 
                         class="gradient-button w-full py-4 px-6 rounded-xl font-bold text-white text-lg shadow-lg">
-                    <span class="button-text">Discover Recipes</span>
-                    <span class="button-icon ml-2">✨</span>
-                </button>
-            </div>
-        </div>
+                    <span class="button-text">Discover Recipes</span>cipes()" 
+                    <span class="button-icon ml-2">✨</span>lass="gradient-button w-full py-4 px-6 rounded-xl font-bold text-white text-lg shadow-lg">
+                </button>  <span class="button-text">Discover Recipes</span>
+            </div>      <span class="button-icon ml-2">✨</span>
+        </div>        </button>
         
         <!-- Loading animation -->
         <div id="loading" class="hidden flex flex-col items-center justify-center my-8">
             <div class="cooking-pot">
-                <div class="steam"></div>
+                <div class="steam"></div>x-col items-center justify-center my-8">
                 <div class="steam steam2"></div>
-                <div class="steam steam3"></div>
+                <div class="steam steam3"></div>"></div>
                 <div class="pot">
                     <div class="bubble bubble1"></div>
                     <div class="bubble bubble2"></div>
-                    <div class="bubble bubble3"></div>
-                </div>
+                    <div class="bubble bubble3"></div>iv class="bubble bubble1"></div>
+                </div>  <div class="bubble bubble2"></div>
             </div>
-            <p class="text-gray-600 dark:text-gray-300 mt-4 loading-text">Cooking up some delicious recipes...</p>
-        </div>
-        
+            <p class="text-gray-600 dark:text-gray-300 mt-4 loading-text">Cooking up some delicious recipes...</p>  </div>
+        </div>    </div>
+        -600 dark:text-gray-300 mt-4 loading-text">Cooking up some delicious recipes...</p>
         <!-- Recipe results -->
         <div id="recipe-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10"></div>
         
         <!-- Recipe details -->
         <div id="recipe-details-container" class="recipe-details-container max-w-3xl mx-auto bg-white dark:bg-gray-700 rounded-2xl shadow-xl overflow-hidden p-8 mb-10 mt-10 hidden">
             <button id="back-to-recipes" class="flex items-center text-orange-500 hover:text-orange-700 mb-4">
-                <span class="mr-2">←</span> Back to recipes
-            </button>
-            <div id="recipe-details" class="prose max-w-none dark:text-white"></div>
-        </div>
-    </div>
+                <span class="mr-2">←</span> Back to recipespe-details-container" class="recipe-details-container max-w-3xl mx-auto bg-white dark:bg-gray-700 rounded-2xl shadow-xl overflow-hidden p-8 mb-10 mt-10 hidden">
+            </button>ver:text-orange-700 mb-4">
+            <div id="recipe-details" class="prose max-w-none dark:text-white"></div>  <span class="mr-2">←</span> Back to recipes
+        </div>  </button>
+    </div>        <div id="recipe-details" class="prose max-w-none dark:text-white"></div>
     
     <!-- Footer -->
     <footer class="bg-gray-800 text-white py-8">
         <div class="container mx-auto px-4 text-center">
-            <p>© 2025 Gourmet AI Recipe Recommender. Powered by AI technology.</p>
-        </div>
-    </footer>
+            <p>© 2025 Gourmet AI Recipe Recommender. Powered by AI technology.</p>ass="bg-gray-800 text-white py-8">
+        </div>class="container mx-auto px-4 text-center">
+    </footer>            <p>© 2025 Gourmet AI Recipe Recommender. Powered by AI technology.</p>
 
     <!-- Notification container -->
     <div id="notification-container" class="fixed top-4 right-4 z-50"></div>
     
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>"notification-container" class="fixed top-4 right-4 z-50"></div>
+        const foodEmojis = ['🍕', '🍔', '🍟', '🌭', '🍗', '🥗', '🥪', '🌮', '🍜', '🍚', '🥘', '🍳', '🥑', '🥕'];
+        ipt src="{{ url_for('static', filename='script.js') }}"></script>
+        function createFoodParticle() {
+            const particle = document.createElement('div');🥗', '🥪', '🌮', '🍜', '🍚', '🥘', '🍳', '🥑', '🥕'];
+            particle.className = 'food-particle';
+            particle.textContent = foodEmojis[Math.floor(Math.random() * foodEmojis.length)];
+            const particle = document.createElement('div');
+            // Random position and durationicle';
+            const startX = Math.random() * window.innerWidth;.random() * foodEmojis.length)];
+            const duration = 3000 + Math.random() * 4000; // Between 3-7 seconds
+            // Random position and duration
+            particle.style.left = `${startX}px`;w.innerWidth;
+            particle.style.animationDuration = `${duration}ms`;tween 3-7 seconds
+            
+            document.getElementById('particles-container').appendChild(particle);
+            particle.style.animationDuration = `${duration}ms`;
+            // Remove particle after animation
+            setTimeout(() => {tById('particles-container').appendChild(particle);
+                particle.remove();
+            }, duration);ticle after animation
+        }   setTimeout(() => {
+                particle.remove();
+        // Create new particles periodically
+        setInterval(createFoodParticle, 500);
+
+        // Initial particlesles periodically
+        for(let i = 0; i < 10; i++) {e, 500);
+            setTimeout(createFoodParticle, i * 200);
+        }/ Initial particles
+        for(let i = 0; i < 10; i++) {
+        // Add this function to create enhanced recipe cards
+        function createRecipeCard(recipe) {
+            return `
+                <div class="recipe-card">hanced recipe cards
+                    <div class="relative overflow-hidden">
+                        <img src="${recipe.image}" alt="${recipe.title}" class="recipe-card-image">
+                    </div>="recipe-card">
+                    <div class="recipe-card-content">den">
+                        <h3 class="recipe-title">${recipe.title}</h3>e}" class="recipe-card-image">
+                        <div class="recipe-tags">
+                            ${recipe.tags.map(tag => `<span class="recipe-tag">${tag}</span>`).join('')}
+                        </div>ass="recipe-title">${recipe.title}</h3>
+                        <div class="recipe-stats">
+                            <span class="recipe-stat">⏱️ ${recipe.cookTime} mins</span>span>`).join('')}
+                            <span class="recipe-stat">👥 ${recipe.servings} servings</span>
+                            <span class="recipe-stat">⭐ ${recipe.rating}/5</span>
+                        </div>pan class="recipe-stat">⏱️ ${recipe.cookTime} mins</span>
+                        <button onclick="viewRecipeDetails('${recipe.id}')" class="view-recipe-btn">
+                            View Recipe="recipe-stat">⭐ ${recipe.rating}/5</span>
+                        </button>
+                    </div>utton onclick="viewRecipeDetails('${recipe.id}')" class="view-recipe-btn">
+                </div>      View Recipe
+            `;          </button>
+        }           </div>
+    </script>   </div>
+</body>     `;
+</html> }
+    </script>
 </body>
 </html>

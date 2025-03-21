@@ -186,6 +186,11 @@ function createFoodParticles() {
     const emojis = ['🍕', '🍔', '🌮', '🍣', '🍩', '🍎', '🥑', '🍗', '🥦', '🧀', '🍇', '🥐', '🍜', '🥟'];
     const container = document.getElementById('particles-container');
 
+    if (!container) {
+        console.warn('Particles container not found');
+        return;
+    }
+
     // Create particles
     for (let i = 0; i < 20; i++) {
         const particle = document.createElement('div');
@@ -393,10 +398,12 @@ function activateHeroAnimations() {
 }
 
 // Get recipes
-function getRecipes() {
-    const ingredients = ingredientsList.join(', ');
+async function getRecipes() {
+    const ingredientsInput = document.getElementById('ingredients');
+    const ingredients = ingredientsInput.value.trim();
+    
     if (!ingredients) {
-        showNotification('Please enter some ingredients!', 'error');
+        showNotification('Please enter some ingredients first!', 'error');
         return;
     }
 
@@ -404,25 +411,114 @@ function getRecipes() {
     document.getElementById('loading').classList.remove('hidden');
     document.getElementById('recipe-list').innerHTML = '';
 
-    // Fetch recipes from backend
-    fetch(`/get_recipes?ingredients=${encodeURIComponent(ingredients)}`)
+    try {
+        const response = await fetch('/get_recipes', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ ingredients: ingredients })
+        });
+
+        const data = await response.json();
+        
+        // Hide loading animation
+        document.getElementById('loading').classList.add('hidden');
+
+        if (data.recipes && data.recipes.length > 0) {
+            const recipeList = document.getElementById('recipe-list');
+            recipeList.innerHTML = '';
+            
+            data.recipes.forEach(recipe => {
+                const recipeCard = createRecipeCard({
+                    id: recipe.id,
+                    title: recipe.title,
+                    image: recipe.image || 'default-recipe-image.jpg',
+                    tags: recipe.tags || ['Quick', 'Easy'],
+                    cookTime: recipe.cookTime || '30',
+                    servings: recipe.servings || '4',
+                    rating: recipe.rating || '4.5'
+                });
+                recipeList.innerHTML += recipeCard;
+            });
+        } else {
+            showNotification('No recipes found for these ingredients.', 'warning');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('Error fetching recipes. Please try again.', 'error');
+        document.getElementById('loading').classList.add('hidden');
+    }
+}
+
+// Function to show notifications
+function showNotification(message, type = 'info') {
+    const container = document.getElementById('notification-container');
+    const notification = document.createElement('div');
+    
+    notification.classList.add(
+        'notification',
+        'p-4',
+        'rounded-lg',
+        'shadow-lg',
+        'mb-4',
+        type === 'error' ? 'bg-red-500' : type === 'warning' ? 'bg-yellow-500' : 'bg-green-500',
+        'text-white'
+    );
+    
+    notification.textContent = message;
+    container.appendChild(notification);
+
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+// Function to view recipe details
+function viewRecipeDetails(recipeId) {
+    // Show loading animation
+    document.getElementById('loading').classList.remove('hidden');
+    
+    fetch(`/get_recipe_details/${recipeId}`)
         .then(response => response.json())
         .then(data => {
-            if (data.error) {
-                showNotification(data.error, 'error');
-                return;
-            }
-
-            renderRecipes(data.recipes);
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('recipe-list').classList.add('hidden');
+            
+            const detailsContainer = document.getElementById('recipe-details-container');
+            const detailsContent = document.getElementById('recipe-details');
+            
+            detailsContent.innerHTML = `
+                <h2 class="text-3xl font-bold mb-4">${data.title}</h2>
+                <img src="${data.image}" alt="${data.title}" class="w-full rounded-lg mb-6">
+                <div class="mb-6">
+                    <h3 class="text-xl font-bold mb-2">Ingredients</h3>
+                    <ul class="list-disc pl-6">
+                        ${data.ingredients.map(ing => `<li>${ing}</li>`).join('')}
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold mb-2">Instructions</h3>
+                    <ol class="list-decimal pl-6">
+                        ${data.instructions.map(step => `<li class="mb-2">${step}</li>`).join('')}
+                    </ol>
+                </div>
+            `;
+            
+            detailsContainer.classList.remove('hidden');
         })
         .catch(error => {
-            console.error('Error fetching recipes:', error);
-            showNotification('Failed to fetch recipes. Please try again.', 'error');
-        })
-        .finally(() => {
+            console.error('Error:', error);
+            showNotification('Error fetching recipe details. Please try again.', 'error');
             document.getElementById('loading').classList.add('hidden');
         });
 }
+
+// Back to recipes button handler
+document.getElementById('back-to-recipes').addEventListener('click', () => {
+    document.getElementById('recipe-details-container').classList.add('hidden');
+    document.getElementById('recipe-list').classList.remove('hidden');
+});
 
 // Render recipes
 function renderRecipes(recipes) {
@@ -492,3 +588,29 @@ function showNotification(message, type = 'success') {
         notification.remove();
     }, 3000);
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const particlesContainer = document.getElementById('particles-container');
+    
+    // Initialize food particles
+    function createFoodParticles() {
+        if (!particlesContainer) {
+            console.warn('Particles container not found');
+            return;
+        }
+
+        const foods = ['🥕', '🥦', '🍅', '🥬', '🧄', '🥔'];
+        for (let i = 0; i < 15; i++) {
+            const particle = document.createElement('span');
+            particle.className = 'food-particle';
+            particle.textContent = foods[Math.floor(Math.random() * foods.length)];
+            particle.style.left = Math.random() * 100 + 'vw';
+            particle.style.animationDuration = (Math.random() * 3 + 2) + 's';
+            particle.style.animationDelay = Math.random() * 2 + 's';
+            particlesContainer.appendChild(particle);
+        }
+    }
+
+    // Create particles when page loads
+    createFoodParticles();
+});
