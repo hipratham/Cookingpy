@@ -15,16 +15,23 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 # Initialize Flask app
 app = Flask(__name__)
 
-# Configure caching
-cache = Cache(app, config={'CACHE_TYPE': 'SimpleCache'})
+# Configure cache
+cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 
 # Configure rate limiting
 limiter = Limiter(
     app=app,
     key_func=get_remote_address,
-    storage_uri="memory://",  # Use in-memory storage for development
+    storage_uri="memory://",
     default_limits=["200 per day", "50 per hour"]
 )
+
+# Add error handling constants
+ERROR_MESSAGES = {
+    'api_error': "Error communicating with recipe service. Please try again later.",
+    'no_recipes': "No recipes found for these ingredients. Please try different ingredients.",
+    'invalid_response': "Received invalid response from service. Please try again.",
+}
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -83,7 +90,6 @@ def get_recipes():
     ingredients = request.args.get('ingredients', '').strip()
     app.logger.info(f"Raw ingredients input: '{ingredients}'")
 
-    # Improved input validation
     if not ingredients or ingredients.isspace():
         app.logger.warning("Empty or whitespace-only ingredients received")
         return jsonify({"error": "Please provide ingredients"}), 400
@@ -95,22 +101,33 @@ def get_recipes():
         {"role": "user", "content": f"What are 3 recipes I can make with these ingredients: {ingredients}?"}
     ]
     
-    recipe_suggestions = query_groq(messages)
-    app.logger.info(f"Raw LLM response: {recipe_suggestions}")
-    
-    if "Error" in recipe_suggestions:
-        return jsonify({"error": recipe_suggestions}), 500
+    try:
+        recipe_suggestions = query_groq(messages)
+        app.logger.info(f"Raw LLM response: {recipe_suggestions}")
+        
+        if isinstance(recipe_suggestions, str) and "Error" in recipe_suggestions:
+            app.logger.error(f"API error: {recipe_suggestions}")
+            return jsonify({"error": "Unable to fetch recipes. Please try again later."}), 503
 
-    # Improved response parsing
-    recipes = [recipe.strip() for recipe in recipe_suggestions.split('\n') 
-              if recipe.strip() and not recipe.startswith(('-', '*', '1', '2', '3'))][:3]
-    
-    if not recipes:
-        app.logger.error(f"No valid recipes extracted from response: {recipe_suggestions}")
-        return jsonify({"error": "No valid recipes found. Please try again."}), 500
+        # Clean and process the recipes
+        recipes = []
+        for line in recipe_suggestions.split('\n'):
+            cleaned_line = line.strip()
+            if cleaned_line and not any(cleaned_line.startswith(c) for c in ('-', '*', '1', '2', '3')):
+                recipes.append(cleaned_line)
 
-    app.logger.info(f"Final processed recipes: {recipes}")
-    return jsonify({"recipes": recipes})
+        recipes = recipes[:3]  # Ensure we only get 3 recipes
+        
+        if not recipes:
+            app.logger.error(f"No valid recipes extracted from response: {recipe_suggestions}")
+            return jsonify({"error": "No valid recipes found. Please try with different ingredients."}), 404
+
+        app.logger.info(f"Final processed recipes: {recipes}")
+        return jsonify({"recipes": recipes})
+
+    except Exception as e:
+        app.logger.error(f"Unexpected error in get_recipes: {str(e)}")
+        return jsonify({"error": "An unexpected error occurred. Please try again later."}), 500
 
 @app.route('/get_recipe_details', methods=['GET'])
 @limiter.limit("10 per minute")
