@@ -42,20 +42,33 @@ def query_groq(messages):
         "Content-Type": "application/json"
     }
     data = {
-        "model": "llama3-8b",
-        "messages": messages
+        "model": "mixtral-8x7b-32768",  # Updated model name
+        "messages": messages,
+        "temperature": 0.7,
+        "max_tokens": 1000
     }
 
     try:
         app.logger.info(f"Sending request to Groq API with data: {data}")
         response = requests.post(url, json=data, headers=headers)
-        response.raise_for_status()  # Raise an exception for HTTP errors
-        app.logger.info(f"API Response: {response.json()}")
-        return response.json().get("choices", [{}])[0].get("message", {}).get("content", "No response")
+        response.raise_for_status()
+        
+        result = response.json()
+        app.logger.info(f"API Response: {result}")
+        
+        if not result.get("choices"):
+            app.logger.error("No choices in API response")
+            return "Error: No response choices available"
+            
+        content = result["choices"][0]["message"]["content"]
+        return content.strip()
     except requests.exceptions.RequestException as e:
         app.logger.error(f"Error querying Groq API: {e}")
         app.logger.error(f"Response: {response.text if 'response' in locals() else 'No response'}")
         return "Error fetching response from LLM."
+    except Exception as e:
+        app.logger.error(f"Unexpected error: {str(e)}")
+        return "Error: Something went wrong"
 
 @app.route('/')
 def home():
@@ -63,7 +76,7 @@ def home():
     return render_template('index.html')
 
 @app.route('/get_recipes', methods=['GET'])
-@limiter.limit("10 per minute")
+@limiter.limit("30 per minute")  # Increased rate limit for testing
 @cache.cached(timeout=300)
 def get_recipes():
     """Get recipe suggestions based on ingredients."""
@@ -71,16 +84,33 @@ def get_recipes():
     if not ingredients:
         return jsonify({"error": "Please provide ingredients"}), 400
 
+    app.logger.info(f"Received ingredients: {ingredients}")  # Add debug logging
+
     messages = [
-        {"role": "system", "content": "You are a chef. Suggest 3 recipe names based on the given ingredients."},
-        {"role": "user", "content": f"I have {ingredients}. What can I cook?"}
+        {"role": "system", "content": """You are a helpful chef. Provide exactly 3 recipe names based on the given ingredients.
+        Format your response as a simple list with each recipe on a new line.
+        Do not include numbers, bullets, or any extra text."""},
+        {"role": "user", "content": f"What are 3 recipes I can make with these ingredients: {ingredients}?"}
     ]
     
     recipe_suggestions = query_groq(messages)
-    if recipe_suggestions == "Error fetching response from LLM.":
-        return jsonify({"error": "Failed to fetch recipes. Please try again later."}), 500
+    app.logger.info(f"Raw LLM response: {recipe_suggestions}")  # Add debug logging
+    
+    if "Error" in recipe_suggestions:
+        return jsonify({"error": recipe_suggestions}), 500
 
-    recipes = recipe_suggestions.split("\n")  # Split by new line
+    # Clean and parse the response
+    recipes = [recipe.strip() for recipe in recipe_suggestions.split('\n') 
+              if recipe.strip() and not recipe.startswith(('-', '*', '1', '2', '3'))]
+    
+    # Ensure we have at least one recipe
+    if not recipes:
+        return jsonify({"error": "No valid recipes found. Please try again."}), 500
+
+    # Take only the first 3 recipes if we got more
+    recipes = recipes[:3]
+    
+    app.logger.info(f"Processed recipes: {recipes}")
     return jsonify({"recipes": recipes})
 
 @app.route('/get_recipe_details', methods=['GET'])
@@ -103,4 +133,5 @@ def get_recipe_details():
     return jsonify({"recipe_details": recipe_details})
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.debug = True  # Enable debug mode during testing
+    app.run(debug=True)
