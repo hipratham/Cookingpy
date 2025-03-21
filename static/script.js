@@ -31,112 +31,154 @@ document.addEventListener('DOMContentLoaded', function () {
 function initAnimations() {
     // Animate section titles when scrolled into view
     gsap.utils.toArray('.section-title').forEach(title => {
-        ScrollTrigger.create({
-            trigger: title,
-            start: 'top 80%',
-            onEnter: () => title.classList.add('active'),
-            once: true
-        });
+        if (title) {
+            ScrollTrigger.create({
+                trigger: title,
+                start: 'top 80%',
+                onEnter: () => title.classList.add('active'),
+                once: true
+            });
+        }
     });
 
     // Animate glass cards when scrolled into view
     gsap.utils.toArray('.glass-card').forEach(card => {
-        ScrollTrigger.create({
-            trigger: card,
-            start: 'top 80%',
-            onEnter: () => card.classList.add('active'),
-            once: true
-        });
+        if (card) {
+            ScrollTrigger.create({
+                trigger: card,
+                start: 'top 80%',
+                onEnter: () => card.classList.add('active'),
+                once: true
+            });
+        }
     });
 
     // Animate input container
-    ScrollTrigger.create({
-        trigger: '.input-container',
-        start: 'top 80%',
-        onEnter: () => document.querySelector('.input-container').classList.add('active'),
-        once: true
-    });
+    const inputContainer = document.querySelector('.input-container');
+    if (inputContainer) {
+        ScrollTrigger.create({
+            trigger: '.input-container',
+            start: 'top 80%',
+            onEnter: () => inputContainer.classList.add('active'),
+            once: true
+        });
+    }
 }
 
 // Setup event listeners
 function setupEventListeners() {
     // Ingredient input events
     const ingredientsInput = document.getElementById('ingredients');
-
-    ingredientsInput.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            addIngredientTag();
-        }
-    });
+    if (ingredientsInput) {
+        ingredientsInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addIngredientTag();
+            }
+        });
+    }
 
     // Add ingredient button
-    document.getElementById('add-ingredient-btn').addEventListener('click', function () {
-        addIngredientTag();
-    });
+    const addIngredientBtn = document.getElementById('add-ingredient-btn');
+    if (addIngredientBtn) {
+        addIngredientBtn.addEventListener('click', function () {
+            addIngredientTag();
+        });
+    }
 
     // Quick ingredient buttons
     document.querySelectorAll('.quick-ingredient').forEach(btn => {
-        btn.addEventListener('click', function () {
-            const ingredient = this.textContent.trim();
-            if (!ingredientsList.includes(ingredient)) {
-                ingredientsList.push(ingredient);
-                renderIngredientTags();
-                createFoodParticleAt(this);
-            }
-        });
+        if (btn) {
+            btn.addEventListener('click', function () {
+                const ingredient = this.textContent.trim();
+                if (!ingredientsList.includes(ingredient)) {
+                    ingredientsList.push(ingredient);
+                    renderIngredientTags();
+                    createFoodParticleAt(this);
+                }
+            });
+        }
     });
 
     // How it works modal
-    document.getElementById('how-it-works-btn').addEventListener('click', function () {
-        showModal('how-it-works-modal');
-    });
+    const howItWorksBtn = document.getElementById('how-it-works-btn');
+    if (howItWorksBtn) {
+        howItWorksBtn.addEventListener('click', function () {
+            showModal('how-it-works-modal');
+        });
+    }
 
     // Modal close buttons
     document.querySelectorAll('.modal-close, .modal-close-btn, .modal-backdrop').forEach(elem => {
-        elem.addEventListener('click', function () {
-            closeAllModals();
-        });
+        if (elem) {
+            elem.addEventListener('click', function () {
+                closeAllModals();
+            });
+        }
     });
 
     // Stop propagation on modal content
     document.querySelectorAll('.modal-content').forEach(content => {
-        content.addEventListener('click', function (e) {
-            e.stopPropagation();
-        });
+        if (content) {
+            content.addEventListener('click', function (e) {
+                e.stopPropagation();
+            });
+        }
     });
 
     // Back to recipes button
-    document.getElementById('back-to-recipes').addEventListener('click', function () {
-        document.getElementById('recipe-detail-section').classList.add('hidden');
-        document.getElementById('recipe-results').scrollIntoView({ behavior: 'smooth' });
-    });
+    const backToRecipesBtn = document.getElementById('back-to-recipes');
+    if (backToRecipesBtn) {
+        backToRecipesBtn.addEventListener('click', function () {
+            const recipeDetailSection = document.getElementById('recipe-detail-section');
+            if (recipeDetailSection) {
+                recipeDetailSection.classList.add('hidden');
+            }
+            const recipeResults = document.getElementById('recipe-results');
+            if (recipeResults) {
+                recipeResults.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    }
 
     // Theme toggle
-    document.querySelector('.theme-toggle').addEventListener('click', function () {
-        toggleTheme();
-    });
+    const themeToggle = document.querySelector('.theme-toggle');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', function () {
+            toggleTheme();
+        });
+    }
 }
 
 // Initialize Lottie animations
 function initLottieAnimations() {
+    // Check if Lottie is available
+    if (typeof lottie === 'undefined') {
+        console.warn('Lottie library not loaded. Animations will not work.');
+        return;
+    }
+
     // Cooking animation for hero section
-    lottie.loadAnimation({
-        container: document.getElementById('cooking-animation'),
-        renderer: 'svg',
-        loop: true,
-        autoplay: true,
-        path: 'https://assets8.lottiefiles.com/packages/lf20_yvla9mj2.json' // Replace with your own animation path
-    });
+    if (document.getElementById('cooking-animation')) {
+        lottie.loadAnimation({
+            container: document.getElementById('cooking-animation'),
+            renderer: 'svg',
+            loop: true,
+            autoplay: true,
+            path: 'https://assets8.lottiefiles.com/packages/lf20_yvla9mj2.json'
+        });
+    }
 
     // Loading animation
-    lottie.loadAnimation({
-        container: document.getElementById('cooking-loader'),
-        renderer: 'svg',
-        loop: true,
-        autoplay: true,
-        path: 'https://assets5.lottiefiles.com/packages/lf20_qdbb21wb.json' // Replace with your own animation path
-    });
+    if (document.getElementById('cooking-loader')) {
+        lottie.loadAnimation({
+            container: document.getElementById('cooking-loader'),
+            renderer: 'svg',
+            loop: true,
+            autoplay: true,
+            path: 'https://assets5.lottiefiles.com/packages/lf20_qdbb21wb.json'
+        });
+    }
 }
 
 // Create food particles
