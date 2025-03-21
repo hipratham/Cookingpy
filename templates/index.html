@@ -3,177 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gourmet AI - Advanced Recipe Recommender</title>
+    <title>Gourmet AI - Recipe Recommender</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ScrollMagic/2.0.8/ScrollMagic.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/ScrollTrigger.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.10.2/lottie.min.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
-<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
-    <!-- Particle elements container -->
-    <div id="particles-container" class="fixed inset-0 pointer-events-none z-0"></div>
-    
-    <!-- 3D animated plate for hero section -->
-    <div id="cooking-animation" class="absolute top-20 right-10 w-64 h-64 opacity-75 hidden lg:block"></div>
-    
-    <header class="py-6 relative z-10">
-        <nav class="container mx-auto px-6 flex justify-between items-center">
-            <a href="#" class="flex items-center space-x-2 text-2xl font-bold text-gray-800">
-                <span class="text-3xl">🍽️</span>
-                <span>Gourmet AI</span>
-            </a>
-            <div class="theme-toggle cursor-pointer p-2 rounded-full bg-white shadow-md">
-                <div id="theme-icon" class="w-6 h-6">🌙</div>
-            </div>
-        </nav>
-    </header>
-
-    <main class="container mx-auto px-4 py-12 relative z-10">
-        <section id="hero" class="text-center mb-16 relative">
-            <div class="hero-content">
-                <h1 class="text-6xl md:text-7xl font-bold mb-6 text-gray-800 hero-title">
-                    <span class="block hero-text-animation">Gourmet</span>
-                    <span class="block hero-text-animation">AI Chef</span>
-                </h1>
-                <p class="text-xl md:text-2xl text-gray-600 max-w-2xl mx-auto mt-4 hero-subtitle">Transform your ingredients into culinary masterpieces with AI-powered magic</p>
-                
-                <div class="mt-8 flex justify-center space-x-4">
-                    <a href="#ingredient-section" class="btn-primary">Get Started</a>
-                    <button id="how-it-works-btn" class="btn-secondary">How It Works</button>
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 dark:bg-gradient-to-br dark:from-gray-800 dark:to-gray-900 min-h-screen">
+    <!-- Header with animated background -->
+    <div class="header-container relative overflow-hidden">
+        <div id="particle-container"></div>
+        <div class="container mx-auto px-4 py-16 relative z-10">
+            <div class="text-center mb-10">
+                <div class="logo-container flex justify-center items-center space-x-3 mb-3">
+                    <span class="text-5xl logo-icon">🍽️</span>
+                    <h1 class="text-5xl font-bold text-gray-800 dark:text-white inline-block app-title">Gourmet AI</h1>
                 </div>
+                <p class="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mt-4 tagline">Transform your ingredients into culinary masterpieces with AI-powered recipe suggestions</p>
             </div>
-            
-            <div class="absolute top-0 -left-20 w-40 h-40 hero-decoration">🥑</div>
-            <div class="absolute bottom-0 -right-10 w-40 h-40 hero-decoration">🍅</div>
-        </section>
-        
-        <section id="ingredient-section" class="max-w-3xl mx-auto glass-card mb-16">
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="container mx-auto px-4 pb-12 relative">
+        <!-- Search box -->
+        <div class="max-w-3xl mx-auto bg-white dark:bg-gray-700 rounded-2xl shadow-xl overflow-hidden mb-10 search-container transform -translate-y-6">
             <div class="p-8 relative">
-                <h2 class="text-3xl font-bold text-gray-800 mb-6 section-title">What's in your kitchen?</h2>
-                
-                <div class="relative mb-8 input-container">
-                    <div class="absolute inset-y-0 left-4 flex items-center input-icon">
-                        <span class="text-2xl">🥕</span>
+                <div class="relative mb-8">
+                    <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                        <span class="text-2xl ingredient-icon">🥕</span>
                     </div>
                     <input type="text" id="ingredients" 
                            placeholder="Enter ingredients (e.g., chicken, spinach, garlic)" 
-                           class="ingredients-input w-full py-4 pl-14 pr-4 rounded-xl text-lg focus:outline-none focus:ring-2 focus:ring-orange-300"
-                           aria-label="Enter your ingredients">
-                    <button id="add-ingredient-btn" class="absolute inset-y-0 right-2 px-4 text-orange-500 hover:text-orange-700">
-                        Add
-                    </button>
+                           class="ingredients-input w-full py-4 pl-14 pr-4 rounded-xl text-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-300 dark:bg-gray-600 dark:text-white">
                 </div>
                 
                 <div id="ingredient-tags" class="flex flex-wrap gap-2 mb-6"></div>
                 
-                <div class="popular-ingredients mb-6">
-                    <h3 class="text-sm font-medium text-gray-500 mb-2">Popular ingredients:</h3>
-                    <div class="flex flex-wrap gap-2">
-                        <button class="quick-ingredient bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full text-sm">Chicken</button>
-                        <button class="quick-ingredient bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full text-sm">Pasta</button>
-                        <button class="quick-ingredient bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full text-sm">Rice</button>
-                        <button class="quick-ingredient bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full text-sm">Beef</button>
-                        <button class="quick-ingredient bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full text-sm">Tomatoes</button>
-                    </div>
-                </div>
-                
-                <button id="get-recipes-btn" onclick="getRecipes()" class="btn-primary w-full py-4 px-6 text-lg">
-                    <span class="flex items-center justify-center">
-                        <span>Discover Recipes</span>
-                        <span class="ml-2">✨</span>
-                    </span>
+                <button id="get-recipes-btn" onclick="getRecipes()" 
+                        class="gradient-button w-full py-4 px-6 rounded-xl font-bold text-white text-lg shadow-lg">
+                    <span class="button-text">Discover Recipes</span>
+                    <span class="button-icon ml-2">✨</span>
                 </button>
-            </div>
-        </section>
-        
-        <div id="loading" class="hidden">
-            <div class="loading-container">
-                <div id="cooking-loader" class="w-32 h-32 mx-auto"></div>
-                <p class="text-center text-gray-600 mt-4">Cooking up some delicious recipes...</p>
             </div>
         </div>
         
-        <section id="recipe-results" class="mb-16">
-            <h2 id="results-title" class="text-3xl font-bold text-gray-800 mb-8 section-title hidden text-center">Recipes for You</h2>
-            <div id="recipe-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-        </section>
-        
-        <section id="recipe-detail-section" class="mb-16 hidden">
-            <div id="recipe-details-container" class="glass-card p-8 max-w-3xl mx-auto">
-                <button id="back-to-recipes" class="flex items-center text-orange-500 hover:text-orange-700 mb-6">
-                    <span class="mr-2">←</span>
-                    <span>Back to recipes</span>
-                </button>
-                <div id="recipe-details" class="prose max-w-none"></div>
-            </div>
-        </section>
-        
-        <div id="how-it-works-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
-            <div class="modal-backdrop absolute inset-0 bg-black bg-opacity-50"></div>
-            <div class="modal-content bg-white rounded-2xl shadow-xl p-8 max-w-md mx-4 relative z-10">
-                <button class="modal-close absolute top-4 right-4 text-gray-400 hover:text-gray-600">✕</button>
-                <h3 class="text-2xl font-bold mb-4">How Gourmet AI Works</h3>
-                <div class="space-y-4">
-                    <div class="flex items-start">
-                        <div class="bg-orange-100 rounded-full p-2 mr-4">
-                            <span class="text-xl">1️⃣</span>
-                        </div>
-                        <div>
-                            <h4 class="font-medium">Enter Your Ingredients</h4>
-                            <p class="text-gray-600">Type what you have in your kitchen.</p>
-                        </div>
-                    </div>
-                    <div class="flex items-start">
-                        <div class="bg-orange-100 rounded-full p-2 mr-4">
-                            <span class="text-xl">2️⃣</span>
-                        </div>
-                        <div>
-                            <h4 class="font-medium">AI Magic Happens</h4>
-                            <p class="text-gray-600">Our AI analyzes your ingredients to find perfect recipes.</p>
-                        </div>
-                    </div>
-                    <div class="flex items-start">
-                        <div class="bg-orange-100 rounded-full p-2 mr-4">
-                            <span class="text-xl">3️⃣</span>
-                        </div>
-                        <div>
-                            <h4 class="font-medium">Get Delicious Recipes</h4>
-                            <p class="text-gray-600">View detailed instructions and start cooking!</p>
-                        </div>
-                    </div>
+        <!-- Loading animation -->
+        <div id="loading" class="hidden flex flex-col items-center justify-center my-8">
+            <div class="cooking-pot">
+                <div class="steam"></div>
+                <div class="steam steam2"></div>
+                <div class="steam steam3"></div>
+                <div class="pot">
+                    <div class="bubble bubble1"></div>
+                    <div class="bubble bubble2"></div>
+                    <div class="bubble bubble3"></div>
                 </div>
-                <button class="btn-primary w-full mt-6 modal-close-btn">Got it</button>
             </div>
+            <p class="text-gray-600 dark:text-gray-300 mt-4 loading-text">Cooking up some delicious recipes...</p>
         </div>
         
-        <div id="notification-container" class="fixed top-4 right-4 z-50"></div>
-    </main>
+        <!-- Recipe results -->
+        <div id="recipe-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10"></div>
+        
+        <!-- Recipe details -->
+        <div id="recipe-details-container" class="recipe-details-container max-w-3xl mx-auto bg-white dark:bg-gray-700 rounded-2xl shadow-xl overflow-hidden p-8 mb-10 mt-10 hidden">
+            <button id="back-to-recipes" class="flex items-center text-orange-500 hover:text-orange-700 mb-4">
+                <span class="mr-2">←</span> Back to recipes
+            </button>
+            <div id="recipe-details" class="prose max-w-none dark:text-white"></div>
+        </div>
+    </div>
     
-    <footer class="bg-gray-800 text-white py-12 mt-auto relative z-10">
-        <div class="container mx-auto px-6">
-            <div class="flex flex-col md:flex-row justify-between items-center">
-                <div class="mb-6 md:mb-0">
-                    <div class="flex items-center space-x-2 text-2xl font-bold">
-                        <span class="text-3xl">🍽️</span>
-                        <span>Gourmet AI</span>
-                    </div>
-                    <p class="text-gray-400 mt-2">Your personal AI chef assistant</p>
-                </div>
-                <div class="flex space-x-8">
-                    <a href="#" class="hover:text-orange-400 transition-colors">About</a>
-                    <a href="#" class="hover:text-orange-400 transition-colors">FAQ</a>
-                    <a href="#" class="hover:text-orange-400 transition-colors">Contact</a>
-                </div>
-            </div>
-            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-                &copy; 2025 Gourmet AI. All rights reserved.
-            </div>
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-4 text-center">
+            <p>© 2025 Gourmet AI Recipe Recommender. Powered by AI technology.</p>
         </div>
     </footer>
+
+    <!-- Notification container -->
+    <div id="notification-container" class="fixed top-4 right-4 z-50"></div>
     
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>

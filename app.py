@@ -23,7 +23,6 @@ limiter = Limiter(
     app=app,
     key_func=get_remote_address,
     storage_uri="memory://",  # Use in-memory storage for development
-    # storage_uri="redis://localhost:6379",  # Use Redis for production
     default_limits=["200 per day", "50 per hour"]
 )
 
@@ -48,6 +47,7 @@ def query_groq(messages):
     }
 
     try:
+        app.logger.info(f"Sending request to Groq API with data: {data}")
         response = requests.post(url, json=data, headers=headers)
         response.raise_for_status()  # Raise an exception for HTTP errors
         app.logger.info(f"API Response: {response.json()}")
