@@ -502,3 +502,13 @@ h1, h2, h3 {
 }
 
 /* Add more dark mode styles as needed */
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}

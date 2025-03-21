@@ -399,80 +399,118 @@ function activateHeroAnimations() {
 
 // Get recipes
 async function getRecipes() {
-    const ingredientsInput = document.getElementById('ingredients');
-    const ingredients = ingredientsInput.value.trim();
-    
-    if (!ingredients) {
-        showNotification('Please enter some ingredients first!', 'error');
+    if (ingredientsList.length === 0) {
+        showNotification('Please enter at least one ingredient', 'error');
         return;
     }
 
-    // Show loading animation
-    document.getElementById('loading').classList.remove('hidden');
-    document.getElementById('recipe-list').innerHTML = '';
-
+    const loading = document.getElementById('loading');
+    const recipeList = document.getElementById('recipe-list');
+    
     try {
+        loading.classList.remove('hidden');
+        recipeList.innerHTML = '';
+
+        // Get CSRF token from meta tag
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
         const response = await fetch('/get_recipes', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
             },
-            body: JSON.stringify({ ingredients: ingredients })
+            body: JSON.stringify({ ingredients: ingredientsList }),
+            credentials: 'same-origin'
         });
 
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const data = await response.json();
-        
-        // Hide loading animation
-        document.getElementById('loading').classList.add('hidden');
+        loading.classList.add('hidden');
 
         if (data.recipes && data.recipes.length > 0) {
-            const recipeList = document.getElementById('recipe-list');
-            recipeList.innerHTML = '';
-            
-            data.recipes.forEach(recipe => {
-                const recipeCard = createRecipeCard({
-                    id: recipe.id,
-                    title: recipe.title,
-                    image: recipe.image || 'default-recipe-image.jpg',
-                    tags: recipe.tags || ['Quick', 'Easy'],
-                    cookTime: recipe.cookTime || '30',
-                    servings: recipe.servings || '4',
-                    rating: recipe.rating || '4.5'
-                });
-                recipeList.innerHTML += recipeCard;
-            });
+            recipeList.innerHTML = data.recipes.map(recipe => createRecipeCard(recipe)).join('');
         } else {
-            showNotification('No recipes found for these ingredients.', 'warning');
+            recipeList.innerHTML = '<p class="text-center col-span-full text-gray-600">No recipes found for these ingredients.</p>';
         }
     } catch (error) {
         console.error('Error:', error);
+        loading.classList.add('hidden');
         showNotification('Error fetching recipes. Please try again.', 'error');
-        document.getElementById('loading').classList.add('hidden');
     }
 }
 
 // Function to show notifications
 function showNotification(message, type = 'info') {
     const container = document.getElementById('notification-container');
+    
+    // Create container if it doesn't exist
+    if (!container) {
+        const newContainer = document.createElement('div');
+        newContainer.id = 'notification-container';
+        newContainer.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 1000; max-width: 400px;';
+        document.body.appendChild(newContainer);
+    }
+    
     const notification = document.createElement('div');
     
-    notification.classList.add(
-        'notification',
-        'p-4',
-        'rounded-lg',
-        'shadow-lg',
-        'mb-4',
-        type === 'error' ? 'bg-red-500' : type === 'warning' ? 'bg-yellow-500' : 'bg-green-500',
-        'text-white'
-    );
+    // Add styles based on type
+    const bgColor = type === 'error' ? '#f44336' : type === 'warning' ? '#ff9800' : '#4caf50';
     
-    notification.textContent = message;
+    notification.style.cssText = `
+        padding: 16px;
+        margin-bottom: 12px;
+        border-radius: 8px;
+        background-color: ${bgColor};
+        color: white;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        font-size: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        animation: slideIn 0.3s ease-out;
+    `;
+    
+    // Add message and close button
+    notification.innerHTML = `
+        <span>${message}</span>
+        <button style="margin-left: 12px; background: none; border: none; color: white; cursor: pointer; font-size: 20px;">&times;</button>
+    `;
+    
+    // Add to container
     container.appendChild(notification);
-
-    setTimeout(() => {
+    
+    // Add click handler for close button
+    notification.querySelector('button').addEventListener('click', () => {
         notification.remove();
-    }, 3000);
+    });
+
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.style.animation = 'fadeOut 0.3s ease-out';
+            setTimeout(() => notification.remove(), 300);
+        }
+    }, 5000);
 }
+
+// Add required CSS animations
+const styleSheet = document.createElement('style');
+styleSheet.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes fadeOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+`;
+document.head.appendChild(styleSheet);
 
 // Function to view recipe details
 function viewRecipeDetails(recipeId) {
@@ -643,75 +681,4 @@ function updateIngredientTags() {
 function removeIngredient(ingredient) {
     ingredients = ingredients.filter(i => i !== ingredient);
     updateIngredientTags();
-}
-
-async function getRecipes() {
-    if (ingredients.length === 0) {
-        showNotification('Please enter at least one ingredient', 'error');
-        return;
-    }
-
-    const loading = document.getElementById('loading');
-    const recipeList = document.getElementById('recipe-list');
-    
-    try {
-        loading.classList.remove('hidden');
-        recipeList.innerHTML = '';
-
-        const response = await fetch('/get_recipes', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ ingredients: ingredients })
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to fetch recipes');
-        }
-
-        const data = await response.json();
-        loading.classList.add('hidden');
-
-        if (data.recipes && data.recipes.length > 0) {
-            recipeList.innerHTML = data.recipes.map(recipe => createRecipeCard(recipe)).join('');
-        } else {
-            recipeList.innerHTML = '<p class="text-center col-span-full text-gray-600">No recipes found for these ingredients.</p>';
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        loading.classList.add('hidden');
-        showNotification('Error fetching recipes. Please try again.', 'error');
-    }
-}
-
-function showNotification(message, type = 'info') {
-    const container = document.getElementById('notification-container');
-    const notification = document.createElement('div');
-    notification.className = `p-4 rounded-lg mb-2 ${type === 'error' ? 'bg-red-500' : 'bg-green-500'} text-white`;
-    notification.textContent = message;
-    container.appendChild(notification);
-    setTimeout(() => notification.remove(), 3000);
-}
-
-function viewRecipeDetails(recipeId) {
-    // Show loading state
-    const loading = document.getElementById('loading');
-    const recipeDetailsContainer = document.getElementById('recipe-details-container');
-    const recipeDetails = document.getElementById('recipe-details');
-    
-    loading.classList.remove('hidden');
-    
-    fetch(`/get_recipe_details/${recipeId}`)
-        .then(response => response.json())
-        .then(data => {
-            loading.classList.add('hidden');
-            recipeDetails.innerHTML = data.details;
-            recipeDetailsContainer.classList.remove('hidden');
-            recipeDetailsContainer.scrollIntoView({ behavior: 'smooth' });
-        })
-        .catch(error => {
-            loading.classList.add('hidden');
-            showNotification('Error fetching recipe details. Please try again.', 'error');
-        });
 }
