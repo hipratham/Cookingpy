@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cooking App - AI Recipe Recommender</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script defer src="{{ url_for('static', filename='script.js') }}"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>🍽️ AI-Powered Recipe Recommender</h1>
+        <p>Enter the ingredients you have, and get multiple recipe suggestions!</p>
+
+        <input type="text" id="ingredients" placeholder="Enter ingredients (e.g., tomato, cheese, basil)">
+        <button onclick="getRecipes()">Get Recipes</button>
+
+        <div id="recipe-list"></div>
+        <div id="recipe-details"></div>
+    </div>
+</body>
+</html>
