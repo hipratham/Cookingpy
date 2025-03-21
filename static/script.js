@@ -614,3 +614,104 @@ document.addEventListener('DOMContentLoaded', () => {
     // Create particles when page loads
     createFoodParticles();
 });
+
+let ingredients = [];
+
+// Handle ingredient input
+document.getElementById('ingredients').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        const value = this.value.trim();
+        if (value) {
+            ingredients.push(value);
+            this.value = '';
+            updateIngredientTags();
+        }
+    }
+});
+
+function updateIngredientTags() {
+    const container = document.getElementById('ingredient-tags');
+    container.innerHTML = ingredients.map(ingredient => `
+        <span class="px-3 py-1 bg-orange-100 text-orange-600 rounded-full flex items-center">
+            ${ingredient}
+            <button onclick="removeIngredient('${ingredient}')" class="ml-2">&times;</button>
+        </span>
+    `).join('');
+}
+
+function removeIngredient(ingredient) {
+    ingredients = ingredients.filter(i => i !== ingredient);
+    updateIngredientTags();
+}
+
+async function getRecipes() {
+    if (ingredients.length === 0) {
+        showNotification('Please enter at least one ingredient', 'error');
+        return;
+    }
+
+    const loading = document.getElementById('loading');
+    const recipeList = document.getElementById('recipe-list');
+    
+    try {
+        loading.classList.remove('hidden');
+        recipeList.innerHTML = '';
+
+        const response = await fetch('/get_recipes', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ ingredients: ingredients })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch recipes');
+        }
+
+        const data = await response.json();
+        loading.classList.add('hidden');
+
+        if (data.recipes && data.recipes.length > 0) {
+            recipeList.innerHTML = data.recipes.map(recipe => createRecipeCard(recipe)).join('');
+        } else {
+            recipeList.innerHTML = '<p class="text-center col-span-full text-gray-600">No recipes found for these ingredients.</p>';
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        loading.classList.add('hidden');
+        showNotification('Error fetching recipes. Please try again.', 'error');
+    }
+}
+
+function showNotification(message, type = 'info') {
+    const container = document.getElementById('notification-container');
+    const notification = document.createElement('div');
+    notification.className = `p-4 rounded-lg mb-2 ${type === 'error' ? 'bg-red-500' : 'bg-green-500'} text-white`;
+    notification.textContent = message;
+    container.appendChild(notification);
+    setTimeout(() => notification.remove(), 3000);
+}
+
+function viewRecipeDetails(recipeId) {
+    // Show loading state
+    const loading = document.getElementById('loading');
+    const recipeDetailsContainer = document.getElementById('recipe-details-container');
+    const recipeDetails = document.getElementById('recipe-details');
+    
+    loading.classList.remove('hidden');
+    
+    fetch(`/get_recipe_details/${recipeId}`)
+        .then(response => response.json())
+        .then(data => {
+            loading.classList.add('hidden');
+            recipeDetails.innerHTML = data.details;
+            recipeDetailsContainer.classList.remove('hidden');
+            recipeDetailsContainer.scrollIntoView({ behavior: 'smooth' });
+        })
+        .catch(error => {
+            loading.classList.add('hidden');
+            showNotification('Error fetching recipe details. Please try again.', 'error');
+        });
+}

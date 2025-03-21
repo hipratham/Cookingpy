@@ -76,15 +76,17 @@ def home():
     return render_template('index.html')
 
 @app.route('/get_recipes', methods=['GET'])
-@limiter.limit("30 per minute")  # Increased rate limit for testing
+@limiter.limit("30 per minute")
 @cache.cached(timeout=300)
 def get_recipes():
     """Get recipe suggestions based on ingredients."""
-    ingredients = request.args.get('ingredients', '')
-    if not ingredients:
-        return jsonify({"error": "Please provide ingredients"}), 400
+    ingredients = request.args.get('ingredients', '').strip()
+    app.logger.info(f"Raw ingredients input: '{ingredients}'")
 
-    app.logger.info(f"Received ingredients: {ingredients}")  # Add debug logging
+    # Improved input validation
+    if not ingredients or ingredients.isspace():
+        app.logger.warning("Empty or whitespace-only ingredients received")
+        return jsonify({"error": "Please provide ingredients"}), 400
 
     messages = [
         {"role": "system", "content": """You are a helpful chef. Provide exactly 3 recipe names based on the given ingredients.
@@ -94,23 +96,20 @@ def get_recipes():
     ]
     
     recipe_suggestions = query_groq(messages)
-    app.logger.info(f"Raw LLM response: {recipe_suggestions}")  # Add debug logging
+    app.logger.info(f"Raw LLM response: {recipe_suggestions}")
     
     if "Error" in recipe_suggestions:
         return jsonify({"error": recipe_suggestions}), 500
 
-    # Clean and parse the response
+    # Improved response parsing
     recipes = [recipe.strip() for recipe in recipe_suggestions.split('\n') 
-              if recipe.strip() and not recipe.startswith(('-', '*', '1', '2', '3'))]
+              if recipe.strip() and not recipe.startswith(('-', '*', '1', '2', '3'))][:3]
     
-    # Ensure we have at least one recipe
     if not recipes:
+        app.logger.error(f"No valid recipes extracted from response: {recipe_suggestions}")
         return jsonify({"error": "No valid recipes found. Please try again."}), 500
 
-    # Take only the first 3 recipes if we got more
-    recipes = recipes[:3]
-    
-    app.logger.info(f"Processed recipes: {recipes}")
+    app.logger.info(f"Final processed recipes: {recipes}")
     return jsonify({"recipes": recipes})
 
 @app.route('/get_recipe_details', methods=['GET'])
